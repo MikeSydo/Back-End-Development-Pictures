@@ -35,7 +35,7 @@ def count():
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    return jsonify(data), 200    
 
 ######################################################################
 # GET A PICTURE
@@ -44,7 +44,10 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    for item in data:
+        if item["id"] == id:
+            return jsonify(item), 200
+    return {"message": "Picture not found"}, 404
 
 
 ######################################################################
@@ -52,7 +55,27 @@ def get_picture_by_id(id):
 ######################################################################
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    req_data = request.get_json()
+
+    id = req_data.get('id')
+    if not id:
+        return {"message": "ID is required"}, 400
+
+    for item in data:
+        if item["id"] == id:
+            return {"Message": f"picture with id {req_data['id']} already present"}, 302
+    
+    new_picture = {
+        "id": id,
+        "pic_url": req_data.get('pic_url'),
+        "event_country": req_data.get('event_country'),
+        "event_state": req_data.get('event_state'),
+        "event_date": req_data.get('event_date')
+    }
+
+    data.append(new_picture)
+    return new_picture, 201
+    
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +84,33 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    if not id:
+        return {"message": "ID is required"}, 400
+    req_data = request.get_json()
+    for i, item in enumerate(data):
+        if item.get("id") == id:
+            data[i] = {
+                "id": id,
+                "pic_url": req_data.get('pic_url'),
+                "event_country": req_data.get('event_country'),
+                "event_state": req_data.get('event_state'),
+                "event_date": req_data.get('event_date')
+            }
+            return data[i], 200
+
+    return {"message": "picture not found"}, 404
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    if not id:
+        return {"message": "ID is required"}, 400
+    
+    for i, item in enumerate(data):
+        if item['id'] == id:
+            del data[i]
+            return '', 204
+
+    return {"message": "picture not found"}, 404
